@@ -7,6 +7,7 @@ from args_fusion import args
 import numpy as np
 import time
 import cv2
+import os
 
 
 def load_model(path, input_nc, output_nc):
@@ -48,7 +49,7 @@ def run_demo(model, infrared_path, visible_path, output_path_root, index, fusion
 	# 	img_ir = img_ir.unsqueeze(0).float()
 	# 	img_vi = utils.tensor_load_rgbimage(visible_path)
 	# 	img_vi = img_vi.unsqueeze(0).float()
-
+	
 	# dim = img_ir.shape
 	if args.cuda:
 		ir_img = ir_img.cuda()
@@ -69,6 +70,7 @@ def run_demo(model, infrared_path, visible_path, output_path_root, index, fusion
 	else:
 		img = img_fusion.clamp(0, 255).data[0].numpy()
 	img = img.transpose(1, 2, 0).astype('uint8')
+	
 	utils.save_images(output_path, img)
 
 	print(output_path)
@@ -89,8 +91,8 @@ def vision_features(feature_maps, img_type):
 
 def main():
 	# run demo
-	# test_path = "images/test-RGB/"
-	test_path = "images/IV_images/"
+	test_path = "images/test-RGB/"
+	# test_path = "images/IV_images/"
 	network_type = 'densefuse'
 	fusion_type = 'auto'  # auto, fusion_layer, fusion_all
 	strategy_type_list = ['addition', 'attention_weight']  # addition, attention_weight, attention_enhance, adain_fusion, channel_fusion, saliency_mask
@@ -102,7 +104,7 @@ def main():
 		os.mkdir(output_path)
 
 	# in_c = 3 for RGB images; in_c = 1 for gray images
-	in_c = 1
+	in_c = 3
 	if in_c == 1:
 		out_c = in_c
 		mode = 'L'
@@ -118,8 +120,9 @@ def main():
 		model = load_model(model_path, in_c, out_c)
 		for i in range(1):
 			index = i + 1
-			infrared_path = test_path + 'IR' + str(index) + '.jpg'
-			visible_path = test_path + 'VIS' + str(index) + '.jpg'
+			infrared_path = test_path + 'IR' + str(index) + '.png'
+			visible_path = test_path + 'VIS' + str(index) + '.png'
+			
 			run_demo(model, infrared_path, visible_path, output_path, index, fusion_type, network_type, strategy_type, ssim_weight_str, mode)
 	print('Done......')
 
